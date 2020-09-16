@@ -1,0 +1,8 @@
+Adafruit-GPIO
+Adafruit-MotorHAT
+Adafruit-PureIO
+Adafruit-SSD1306
+Flask
+Jetson.GPIO
+numpy
+pyserial
