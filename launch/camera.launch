@@ -1,0 +1,18 @@
+<launch>
+
+	<arg name="use_realsense" default="false" />
+	<arg name="width" default="640" />
+	<arg name="height" default="360" />
+	<arg name="fps" default="30.0" />
+
+	<node unless="$(arg use_realsense)" name="camera" pkg="jetbot_ros" type="jetbot_camera">
+		<param name="width" value="$(arg width)" />
+		<param name="height" value="$(arg height)" />
+		<param name="framerate" value="$(arg fps)" />
+
+		<!-- Minic topics published by realsense -->
+		<remap from="~raw" to="~color/image_raw" />
+	</node>
+
+</launch>
+

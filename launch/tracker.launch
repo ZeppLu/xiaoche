@@ -1,0 +1,24 @@
+<launch>
+
+	<arg name="use_realsense" default="false" />
+	<arg name="camera_width" default="640" />
+	<arg name="camera_height" default="360" />
+	<arg name="camera_fps" default="30.0" />
+	<arg name="camera_rgb_topic" default="/camera/color/image_raw" />
+
+	<arg name="inference_model" default="ssd-mobilenet-v2" />
+
+
+	<include file="$(find yahboom)/launch/camera.launch">
+		<arg name="use_realsense" value="$(arg use_realsense)" />
+		<arg name="width" value="$(arg camera_width)" />
+		<arg name="height" value="$(arg camera_height)" />
+		<arg name="fps" value="$(arg camera_fps)" />
+	</include>
+
+	<include file="$(find yahboom)/launch/detection_nn.launch">
+		<arg name="model_name" value="$(arg inference_model)" />
+		<arg name="image_raw" value="$(arg camera_rgb_topic)" />
+	</include>
+
+</launch>
