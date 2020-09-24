@@ -12,6 +12,8 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  geometry_msgs
+  vision_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -105,7 +107,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES yahboom
-  CATKIN_DEPENDS message_runtime roscpp rospy std_msgs
+  CATKIN_DEPENDS message_runtime roscpp rospy std_msgs geometry_msgs vision_msgs
 #  DEPENDS system_lib
 )
 
@@ -134,6 +136,7 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/yahboom_node.cpp)
+add_executable(bbox_filter_node src/bbox_filter_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -149,6 +152,7 @@ include_directories(
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
+target_link_libraries(bbox_filter_node ${catkin_LIBRARIES})
 
 #############
 ## Install ##

@@ -21,4 +21,9 @@
 		<arg name="image_raw" value="$(arg camera_rgb_topic)" />
 	</include>
 
+	<node name="target_filter" pkg="yahboom" type="bbox_filter_node">
+		<param name="average_number" value="5" />
+		<remap from="~detections" to="/detectnet/detections" />
+	</node>
+
 </launch>
