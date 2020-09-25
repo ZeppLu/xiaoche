@@ -16,7 +16,7 @@ public:
         // copy detections with expected id
         std::vector<vision_msgs::Detection2D> targets;
         auto is_target = [this](const vision_msgs::Detection2D& det) {
-            return det.results[0].id != this->target_id;
+            return det.results[0].id == this->target_id;
         };
         std::copy_if(detections.begin(), detections.end(), std::back_inserter(targets), is_target);
 
