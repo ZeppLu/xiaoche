@@ -22,7 +22,7 @@
 	</include>
 
 	<node name="target_filter" pkg="yahboom" type="bbox_filter_node">
-		<param name="average_number" value="5" />
+		<param name="average_secs" value="0.5" />
 		<remap from="~detections" to="/detectnet/detections" />
 	</node>
 

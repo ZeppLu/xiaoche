@@ -6,9 +6,16 @@
 #include <list>
 
 
+// add to pose timestamp info, so that we're able to distinguish out-dated messages
+struct Pose2DStamped {
+    ros::Time stamp;
+    geometry_msgs::Pose2D pose;
+};
+
+
 class AverageFilter {
 public:
-    AverageFilter(int average_number, int id) : poses(), N(average_number), target_id(id) {}
+    AverageFilter(double secs, int id) : poses(), period(secs), target_id(id) {}
 
     void update(const vision_msgs::Detection2DArrayConstPtr& msg) {
         const std::vector<vision_msgs::Detection2D>& detections = msg->detections;
@@ -22,20 +29,33 @@ public:
 
         // prevent segfault when pushing into the queue
         if (targets.empty()) {
+            // just keep calm & waiting, don't complain too much
+            ROS_WARN_THROTTLE(10.0, "no detection matches id %d", target_id);
             return;
         }
 
         // calculate the area of each bbox, then choose the largest one
         std::vector<double> areas(targets.size());
+        // just like `map' in Haskell
         std::transform(targets.begin(), targets.end(), areas.begin(), [](const vision_msgs::Detection2D& det) {
             return det.bbox.size_x * det.bbox.size_y;
         });
         int max_index = std::distance(areas.begin(), std::max_element(areas.begin(), areas.end()));
-        poses.push_back(targets[max_index].bbox.center);
+        poses.push_back({
+            .stamp  = targets[max_index].header.stamp,
+            .pose   = targets[max_index].bbox.center
+        });
 
-        // remove out-dated points
-        if (poses.size() >= N) {
-            poses.pop_front();
+        // remove out-dated poses
+        for (auto it = poses.begin(); it != poses.end();) {
+            if ((ros::Time::now() - it->stamp) > period) {
+                // list::erase() returns next iterator
+                it = poses.erase(it);
+            } else {
+                // items in `poses' are in chronological order,
+                // so no need to continue
+                break;
+            }
         }
     }
 
@@ -43,12 +63,15 @@ public:
         geometry_msgs::Pose2D result;
         // prevent singularity in averaging
         if (poses.empty()) {
+            // node /detectnet needs time to load network, so this warning is expected at the begging
+            // print it every 10 seconds to make it less annoying
+            ROS_WARN_THROTTLE(10.0, "no poses history, returning 0");
             return result;
         }
 
         for (const auto& pose : poses) {
-            result.x += pose.x;
-            result.y += pose.y;
+            result.x += pose.pose.x;
+            result.y += pose.pose.y;
             // for now, don't care theta
             //result.theta += pose.theta;
         }
@@ -60,30 +83,30 @@ public:
     }
 
 private:
-    int N;  // length of the queue
+    ros::Duration period;  // length of time window
     int target_id;  // can be found in `rosparam get /detectnet/class_labels_xxxxxxx'
-    std::list<geometry_msgs::Pose2D> poses;  // use list to minic a queue
+    std::list<Pose2DStamped> poses;  // use list to minic a queue
 };
 
 
 int main(int argc, char** argv) {
     ros::init(argc, argv, "bbox_filter");
 
-    //ros::NodeHandle nh;
+    ros::NodeHandle nh;
     ros::NodeHandle private_nh("~");
 
-    // the number to perform average on, default to 3
-    int N = 5;
-    private_nh.param("average_number", N, N);
+    // time window to perform average on
+    double secs = 0.5;
+    private_nh.param("average_secs", secs, secs);
 
     int target_id = 1;  // person
 
     ros::Rate rate(30);
 
-    AverageFilter filter(N, target_id);
+    AverageFilter filter(secs, target_id);
 
-    ros::Subscriber detections_sub = private_nh.subscribe("detections", N, &AverageFilter::update, &filter);
-    ros::Publisher target_pub = private_nh.advertise<geometry_msgs::Pose2D>("target_filtered", 30, true);
+    ros::Subscriber detections_sub = private_nh.subscribe("detections", 30, &AverageFilter::update, &filter);
+    ros::Publisher target_pub = nh.advertise<geometry_msgs::Pose2D>("target_filtered", 30, true);
 
     while (ros::ok()) {
         ros::spinOnce();
