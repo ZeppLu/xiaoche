@@ -1,0 +1,13 @@
+pid:
+  x:
+    Kp: 0.0001
+    Ki: 0
+    Kd: 0
+    max: 0.1
+  y:
+    Kp: 0.0001
+    Ki: 0
+    Kd: 0
+    max: 0.1
+tolerance: 10
+servo_center_service_name: "/servo/center"

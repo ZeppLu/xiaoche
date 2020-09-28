@@ -137,6 +137,7 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/yahboom_node.cpp)
 add_executable(bbox_filter_node src/bbox_filter_node.cpp)
+add_executable(target_tracker_node src/target_tracker_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -153,6 +154,7 @@ add_executable(bbox_filter_node src/bbox_filter_node.cpp)
 #   ${catkin_LIBRARIES}
 # )
 target_link_libraries(bbox_filter_node ${catkin_LIBRARIES})
+target_link_libraries(target_tracker_node ${catkin_LIBRARIES})
 
 #############
 ## Install ##

@@ -21,9 +21,18 @@
 		<arg name="image_raw" value="$(arg camera_rgb_topic)" />
 	</include>
 
+
 	<node name="target_filter" pkg="yahboom" type="bbox_filter_node">
 		<param name="average_secs" value="0.5" />
 		<remap from="~detections" to="/detectnet/detections" />
+	</node>
+
+	<node name="servo" pkg="yahboom" type="servo_node.py" />
+
+	<node name="target_tracker" pkg="yahboom" type="target_tracker_node">
+		<rosparam command="load" file="$(find yahboom)/config/tracker.yaml" />
+		<param name="view/width" value="$(arg camera_width)" />
+		<param name="view/height" value="$(arg camera_height)" />
 	</node>
 
 </launch>
