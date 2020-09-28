@@ -113,23 +113,11 @@ public:
             return;
         }
 
-        double err_x = target.x - pose->x;
-        double err_y = target.y - pose->y;
+        double abserr_x = std::max(std::abs(target.x - pose->x) - tolerance, 0.0);
+        double abserr_y = std::max(std::abs(target.y - pose->y) - tolerance, 0.0);
 
-        if (err_x > -tolerance && err_x < tolerance) {
-            err_x = 0;
-        } else if (err_x >= tolerance) {
-            err_x -= tolerance;
-        } else if (err_x <= -tolerance) {
-            err_x += tolerance;
-        }
-        if (err_y > -tolerance && err_y < tolerance) {
-            err_y = 0;
-        } else if (err_y >= tolerance) {
-            err_y -= tolerance;
-        } else if (err_y <= -tolerance) {
-            err_y += tolerance;
-        }
+        double err_x = target.x > pose->x ? abserr_x : -abserr_x;
+        double err_y = target.y > pose->y ? abserr_y : -abserr_y;
 
         // update controllers
         double dt = (ros::Time::now() - last_update).toSec();
