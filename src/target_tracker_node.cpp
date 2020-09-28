@@ -48,27 +48,27 @@ public:
         bool all_params_recved = true;
 
         double Kp_x, Kp_y, Ki_x, Ki_y, Kd_x, Kd_y, pid_max_x, pid_max_y;
-        all_params_recved  &= \
-            priv_nh.getParam("pid/x/Kp", Kp_x) & \
-            priv_nh.getParam("pid/x/Ki", Ki_x) & \
-            priv_nh.getParam("pid/x/Kd", Kd_x) & \
-            priv_nh.getParam("pid/x/max", pid_max_x) & \
-            priv_nh.getParam("pid/y/Kp", Kp_y) & \
-            priv_nh.getParam("pid/y/Ki", Ki_y) & \
-            priv_nh.getParam("pid/y/Kd", Kd_y) & \
+        all_params_recved &=
+            priv_nh.getParam("pid/x/Kp", Kp_x) &
+            priv_nh.getParam("pid/x/Ki", Ki_x) &
+            priv_nh.getParam("pid/x/Kd", Kd_x) &
+            priv_nh.getParam("pid/x/max", pid_max_x) &
+            priv_nh.getParam("pid/y/Kp", Kp_y) &
+            priv_nh.getParam("pid/y/Ki", Ki_y) &
+            priv_nh.getParam("pid/y/Kd", Kd_y) &
             priv_nh.getParam("pid/y/max", pid_max_y);
 
         double view_width, view_height;
-        all_params_recved  &= \
-            priv_nh.getParam("view/width", view_width) & \
+        all_params_recved &=
+            priv_nh.getParam("view/width", view_width) &
             priv_nh.getParam("view/height", view_height);
 
         double tol;
-        all_params_recved  &= \
+        all_params_recved &=
             priv_nh.getParam("tolerance", tol);
 
         std::string servo_center_srv;  // = "/servo_node/center";
-        all_params_recved  &= \
+        all_params_recved &=
             priv_nh.getParam("servo_center_service_name", servo_center_srv);
 
         // check whether all parameters are set
