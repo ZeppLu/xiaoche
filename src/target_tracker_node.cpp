@@ -12,13 +12,8 @@ public:
     PID(double Kp, double Ki, double Kd, double max) : Kp(Kp), Ki(Ki), Kd(Kd), err_acc(0), err_prev(0), max(max) {}
 
     double update(double dt, double err) {
-        // likely first time, don't make diff term too large
-        if (err_prev == 0) {
-            err_prev = err;
-        }
-
         double output = Kp * err +
-                        Ki * (err * dt + err_acc) +
+                        Ki * (err_prev * dt + err_acc) +
                         Kd * (err - err_prev) / dt;
 
         if (output < -max || output > max) {
@@ -29,10 +24,16 @@ public:
             output = output < 0 ? -max : output;
         }
 
-        err_acc += err * dt;
+        // note err_prev here
+        err_acc += err_prev * dt;
         err_prev = err;
 
         return output;
+    }
+
+    void reset() {
+        err_acc = 0;
+        err_prev = 0;
     }
 
 private:
@@ -100,16 +101,11 @@ public:
     }
 
     void target_pose_callback(const geometry_msgs::Pose2DConstPtr& pose) {
-        // first time
-        if (last_update.isZero()) {
-            last_update = ros::Time::now();
-            return;
-        }
-
         // no detection
         if (pose->x == 0 && pose->y == 0) {
             ROS_WARN_THROTTLE(5, "target coordinate is (0, 0)");
-            last_update = ros::Time::now();
+            controller_x.reset();
+            controller_y.reset();
             return;
         }
 

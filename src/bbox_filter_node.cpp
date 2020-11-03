@@ -45,7 +45,9 @@ public:
             .stamp  = targets[max_index].header.stamp,
             .pose   = targets[max_index].bbox.center
         });
+    }
 
+    void flush() {
         // remove out-dated poses
         for (auto it = poses.begin(); it != poses.end();) {
             if ((ros::Time::now() - it->stamp) > period) {
@@ -59,7 +61,9 @@ public:
         }
     }
 
-    geometry_msgs::Pose2D average() const {
+    geometry_msgs::Pose2D average() {
+        flush();
+
         geometry_msgs::Pose2D result;
         // prevent singularity in averaging
         if (poses.empty()) {
