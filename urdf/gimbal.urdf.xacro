@@ -1,0 +1,109 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+	<xacro:property name="slider_length" value="1"/>
+	<xacro:property name="camera_radius" value="0.07"/>
+	<xacro:property name="camera_length" value="0.2"/>
+	<xacro:property name="stand_width" value="0.02"/>
+	<xacro:property name="stand_height" value="0.2"/>
+	<!-- Max horizontal and vertical angle that camera can rotate -->
+	<xacro:property name="camera_hangle" value="1"/>
+	<xacro:property name="camera_vangle" value="0.5"/>
+
+
+	<xacro:macro name="gimbal" params="prefix">
+
+		<material name="orange">
+			<color rgba="0.5 0.25 0.25 0.95"/>
+		</material>
+
+		<material name="green">
+			<color rgba="0 0.95 0.25 0.95"/>
+		</material>
+
+		<!-- A vitrual link without appearance -->
+		<link name="${prefix}_footprint"/>
+
+		<joint name="${prefix}_footprint_slider_joint" type="fixed">
+			<origin xyz="0 0 ${slider_length/2}" rpy="0 0 0"/>
+			<parent link="${prefix}_footprint"/>
+			<child link="${prefix}_slider_link"/>
+		</joint>
+
+		<link name="${prefix}_slider_link">
+			<visual>
+				<origin xyz="0 0 0" rpy="0 0 0"/>
+				<geometry>
+					<box size="0.04 0.04 ${slider_length}"/>
+				</geometry>
+				<material name="orange"/>
+			</visual>
+		</link>
+
+		<joint name="${prefix}_slider_plate_updown_joint" type="prismatic">
+			<origin xyz="${camera_radius+stand_width+0.02} 0 0" rpy="0 0 0"/>
+			<parent link="${prefix}_slider_link"/>
+			<child link="${prefix}_plate_updown_link"/>
+			<axis xyz="0 0 1"/>
+			<!-- TODO: Set effort and velocity appropriately -->
+			<limit lower="${-slider_length/2}" upper="${slider_length/2}" effort="100" velocity="10"/>
+		</joint>
+
+		<link name="${prefix}_plate_updown_link">
+			<visual>
+				<origin xyz="0 0 0" rpy="0 0 0"/>
+				<geometry>
+					<box size="${2*(camera_radius+stand_width)} ${2*(camera_radius+stand_width)} 0.04"/>
+				</geometry>
+				<material name="orange"/>
+			</visual>
+		</link>
+
+		<joint name="${prefix}_plate_updown_stand_joint" type="revolute">
+			<origin xyz="0 0 0.02" rpy="0 0 0"/>
+			<parent link="${prefix}_plate_updown_link"/>
+			<child link="${prefix}_stand_link"/>
+			<axis xyz="0 0 1"/>
+			<!-- TODO: Set effort and velocity appropriately -->
+			<limit lower="${-camera_hangle}" upper="${camera_hangle}" effort="100" velocity="10"/>
+		</joint>
+
+		<link name="${prefix}_stand_link">
+			<visual>
+				<origin xyz="0 ${camera_radius+stand_width/2} ${stand_height/2}" rpy="0 0 0"/>
+				<geometry>
+					<box size="${stand_width} ${stand_width} ${stand_height}"/>
+				</geometry>
+				<material name="orange"/>
+			</visual>
+			<visual>
+				<origin xyz="0 ${-camera_radius-stand_width/2} ${stand_height/2}" rpy="0 0 0"/>
+				<geometry>
+					<box size="${stand_width} ${stand_width} ${stand_height}"/>
+				</geometry>
+				<material name="orange"/>
+			</visual>
+		</link>
+
+		<joint name="${prefix}_stand_camera_joint" type="revolute">
+			<origin xyz="0 0 ${stand_height}" rpy="0 0 0"/>
+			<parent link="${prefix}_stand_link"/>
+			<child link="${prefix}_camera_link"/>
+			<axis xyz="0 1 0"/>
+			<!-- TODO: Set effort and velocity appropriately -->
+			<limit lower="${-camera_vangle}" upper="${camera_vangle}" effort="100" velocity="10"/>
+		</joint>
+
+		<link name="${prefix}_camera_link">
+			<visual>
+				<origin xyz="${camera_length/2} 0 0" rpy="0 1.5708 0"/>
+				<geometry>
+					<cylinder radius="${camera_radius}" length="${camera_length}"/>
+				</geometry>
+				<material name="green"/>
+			</visual>
+		</link>
+
+	</xacro:macro>
+
+</robot>
