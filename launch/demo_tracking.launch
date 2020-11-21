@@ -29,10 +29,13 @@
 
 	<node name="servo" pkg="yahboom" type="servo_node.py" />
 
+<!-- Temperarily removed to enable easy changing of PID parameters -->
+<!--
 	<node name="target_tracker" pkg="yahboom" type="target_tracker_node">
 		<rosparam command="load" file="$(find yahboom)/config/tracker.yaml" />
 		<param name="view/width" value="$(arg camera_width)" />
 		<param name="view/height" value="$(arg camera_height)" />
 	</node>
+-->
 
 </launch>
