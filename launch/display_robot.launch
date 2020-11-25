@@ -2,7 +2,9 @@
 
     <param name="robot_description" command="$(find xacro)/xacro '$(find scout_description)/urdf/mini.xacro' urdf_extras:='$(find yahboom)/urdf/attachments.urdf.xacro'" />
 
-    <node name="joint_state_publisher_gui" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" />
+    <node name="joint_state_publisher_gui" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui">
+        <rosparam param="source_list">["/servo_node/joint_states"]</rosparam>
+    </node>
 
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
 
