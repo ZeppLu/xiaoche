@@ -1,14 +1,18 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
+    <!-- Set to true to output more frames, including color/depth/infra, etc -->
+    <xacro:property name="rs2_use_nominal_extrinsics" default="true" />
+
     <xacro:include filename="$(find yahboom)/urdf/gimbal.urdf.xacro" />
+    <xacro:include filename="$(find realsense2_description)/urdf/_d435i.urdf.xacro"/>
 
-    <xacro:gimbal prefix="gimbal" />
+    <xacro:gimbal prefix="gimbal" parent="base_link" >
+        <origin xyz="0.135 0 0.122" rpy="0 0 0" />
+    </xacro:gimbal>
 
-    <joint name="base_gimbal_joint" type="fixed">
-        <origin xyz="0.2 0 0.05" rpy="0 0 0" />
-        <parent link="base_link" />
-        <child link="gimbal_footprint" />
-    </joint>
+    <xacro:sensor_d435i parent="gimbal_mountpoint_link" use_nominal_extrinsics="${rs2_use_nominal_extrinsics}" >
+        <origin xyz="0 0 0" rpy="0 0 0" />
+    </xacro:sensor_d435i>
 
 </robot>

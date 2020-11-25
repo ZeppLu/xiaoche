@@ -1,31 +1,42 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-	<xacro:property name="slider_length" value="1"/>
-	<xacro:property name="camera_radius" value="0.07"/>
-	<xacro:property name="camera_length" value="0.2"/>
-	<xacro:property name="stand_width" value="0.02"/>
-	<xacro:property name="stand_height" value="0.2"/>
-	<!-- Max horizontal and vertical angle that camera can rotate -->
-	<xacro:property name="camera_hangle" value="1"/>
-	<xacro:property name="camera_vangle" value="0.5"/>
+	<xacro:macro name="gimbal" params="prefix parent *origin">
+
+		<!-- Max horizontal and vertical angle that camera can rotate -->
+		<xacro:property name="camera_hangle" value="${pi/2}"/>
+		<xacro:property name="camera_vangle" value="${pi/3}"/>
+
+		<xacro:property name="slider_size_x" value="0.03"/>
+		<xacro:property name="slider_size_y" value="0.05"/>
+		<xacro:property name="slider_size_z" value="0.09"/>
+
+		<xacro:property name="vservo_size_x" value="0.03"/>
+		<xacro:property name="vservo_size_y" value="0.03"/>
+		<xacro:property name="vservo_size_z" value="0.015"/>
+
+		<xacro:property name="servos_gap_z" value="0.025"/>
+
+		<xacro:property name="vservo_mountpoint_offset_x" value="0.04"/>
+		<xacro:property name="vservo_mountpoint_offset_y" value="0"/>
+		<xacro:property name="vservo_mountpoint_offset_z" value="-0.015"/>
+
+		<xacro:include filename="$(find yahboom)/urdf/materials.urdf.xacro"/>
 
 
-	<xacro:macro name="gimbal" params="prefix">
-
-		<material name="orange">
-			<color rgba="0.5 0.25 0.25 0.95"/>
-		</material>
-
-		<material name="green">
-			<color rgba="0 0.95 0.25 0.95"/>
-		</material>
+		<!-- Connect to parent link -->
+		<!-- borrowed from realsense2_description/urdf/_d435.urdf.xacro -->
+		<joint name="${parent}_${prefix}_footprint_joint" type="fixed">
+			<xacro:insert_block name="origin" />
+		    <parent link="${parent}" />
+		    <child link="${prefix}_footprint" />
+		</joint>
 
 		<!-- A vitrual link without appearance -->
 		<link name="${prefix}_footprint"/>
 
 		<joint name="${prefix}_footprint_slider_joint" type="fixed">
-			<origin xyz="0 0 ${slider_length/2}" rpy="0 0 0"/>
+			<origin xyz="0 0 ${slider_size_z/2}" rpy="0 0 0"/>
 			<parent link="${prefix}_footprint"/>
 			<child link="${prefix}_slider_link"/>
 		</joint>
@@ -34,73 +45,82 @@
 			<visual>
 				<origin xyz="0 0 0" rpy="0 0 0"/>
 				<geometry>
-					<box size="0.04 0.04 ${slider_length}"/>
+					<box size="${slider_size_x} ${slider_size_y} ${slider_size_z}"/>
 				</geometry>
-				<material name="orange"/>
+				<material name="black"/>
 			</visual>
 		</link>
 
-		<joint name="${prefix}_slider_plate_updown_joint" type="prismatic">
-			<origin xyz="${camera_radius+stand_width+0.02} 0 0" rpy="0 0 0"/>
+		<joint name="${prefix}_slider_hservo_joint" type="prismatic">
+			<origin xyz="0 0 0" rpy="0 0 0"/>
 			<parent link="${prefix}_slider_link"/>
-			<child link="${prefix}_plate_updown_link"/>
+			<child link="${prefix}_hservo_link"/>
 			<axis xyz="0 0 1"/>
 			<!-- TODO: Set effort and velocity appropriately -->
-			<limit lower="${-slider_length/2}" upper="${slider_length/2}" effort="100" velocity="10"/>
+			<limit lower="0" upper="${slider_size_z}" effort="100" velocity="10"/>
 		</joint>
 
-		<link name="${prefix}_plate_updown_link">
+		<link name="${prefix}_hservo_link">
 			<visual>
 				<origin xyz="0 0 0" rpy="0 0 0"/>
 				<geometry>
-					<box size="${2*(camera_radius+stand_width)} ${2*(camera_radius+stand_width)} 0.04"/>
+					<box size="${slider_size_x+0.004} ${slider_size_y+0.004} ${slider_size_z+0.004}"/>
 				</geometry>
-				<material name="orange"/>
+				<material name="green"/>
 			</visual>
 		</link>
 
-		<joint name="${prefix}_plate_updown_stand_joint" type="revolute">
-			<origin xyz="0 0 0.02" rpy="0 0 0"/>
-			<parent link="${prefix}_plate_updown_link"/>
-			<child link="${prefix}_stand_link"/>
+		<joint name="${prefix}_hservo_vservo_joint" type="revolute">
+			<origin xyz="0 0 ${slider_size_z/2+servos_gap_z+vservo_size_z/2}" rpy="0 0 0"/>
+			<parent link="${prefix}_hservo_link"/>
+			<child link="${prefix}_vservo_link"/>
 			<axis xyz="0 0 1"/>
 			<!-- TODO: Set effort and velocity appropriately -->
 			<limit lower="${-camera_hangle}" upper="${camera_hangle}" effort="100" velocity="10"/>
 		</joint>
 
-		<link name="${prefix}_stand_link">
+		<link name="${prefix}_vservo_link">
 			<visual>
-				<origin xyz="0 ${camera_radius+stand_width/2} ${stand_height/2}" rpy="0 0 0"/>
+				<origin xyz="0 0 0" rpy="0 0 0"/>
 				<geometry>
-					<box size="${stand_width} ${stand_width} ${stand_height}"/>
+					<box size="${vservo_size_x} ${vservo_size_y} ${vservo_size_z}"/>
 				</geometry>
-				<material name="orange"/>
+				<material name="black"/>
 			</visual>
 			<visual>
-				<origin xyz="0 ${-camera_radius-stand_width/2} ${stand_height/2}" rpy="0 0 0"/>
+				<origin xyz="0 0 ${-vservo_size_z/2-servos_gap_z/2}" rpy="0 0 0"/>
 				<geometry>
-					<box size="${stand_width} ${stand_width} ${stand_height}"/>
+					<cylinder radius="0.003" length="${servos_gap_z}"/>
 				</geometry>
-				<material name="orange"/>
+				<material name="black"/>
 			</visual>
 		</link>
 
-		<joint name="${prefix}_stand_camera_joint" type="revolute">
-			<origin xyz="0 0 ${stand_height}" rpy="0 0 0"/>
-			<parent link="${prefix}_stand_link"/>
-			<child link="${prefix}_camera_link"/>
-			<axis xyz="0 1 0"/>
+		<joint name="${prefix}_vservo_handle_joint" type="revolute">
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<parent link="${prefix}_vservo_link"/>
+			<child link="${prefix}_handle_link"/>
+			<axis xyz="0 -1 0"/>
 			<!-- TODO: Set effort and velocity appropriately -->
 			<limit lower="${-camera_vangle}" upper="${camera_vangle}" effort="100" velocity="10"/>
 		</joint>
 
-		<link name="${prefix}_camera_link">
+		<link name="${prefix}_handle_link">
+		</link>
+
+		<joint name="${prefix}_handle_mountpoint_joint" type="fixed">
+			<origin xyz="${vservo_mountpoint_offset_x} ${vservo_mountpoint_offset_y} ${vservo_mountpoint_offset_z}" rpy="0 0 0"/>
+			<parent link="${prefix}_handle_link"/>
+			<child link="${prefix}_mountpoint_link"/>
+		</joint>
+
+		<link name="${prefix}_mountpoint_link">
 			<visual>
-				<origin xyz="${camera_length/2} 0 0" rpy="0 1.5708 0"/>
+				<origin xyz="0 0 0" rpy="0 0 0"/>
 				<geometry>
-					<cylinder radius="${camera_radius}" length="${camera_length}"/>
+					<box size="0.025 0.03 0.003"/>
 				</geometry>
-				<material name="green"/>
+				<material name="white"/>
 			</visual>
 		</link>
 
