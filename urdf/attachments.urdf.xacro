@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:include filename="$(find yahboom)/urdf/gimbal.urdf.xacro" />
+
+    <xacro:gimbal prefix="gimbal" />
+
+    <joint name="base_gimbal_joint" type="fixed">
+        <origin xyz="0.2 0 0.05" rpy="0 0 0" />
+        <parent link="base_link" />
+        <child link="gimbal_footprint" />
+    </joint>
+
+</robot>
