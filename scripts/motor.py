@@ -40,8 +40,7 @@ class Motor(object):
         else:  # speed < 0
             motor.run(Adafruit_MotorHAT.BACKWARD, -speed)
 
-    def up(self, speed_msg):
-        speed = speed_msg.data
+    def up(self, speed):
         # check whether limit has been reached
         up_limit = not GPIO.input(self.UP_LIMIT_PIN)
         down_limit = not GPIO.input(self.DOWN_LIMIT_PIN)
