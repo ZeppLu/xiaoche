@@ -1,9 +1,9 @@
 <launch>
 
-	<arg name="use_realsense" default="false" />
+	<arg name="use_realsense" default="true" />
 	<arg name="camera_width" default="640" />
 	<arg name="camera_height" default="360" />
-	<arg name="camera_fps" default="30.0" />
+	<arg name="camera_fps" default="30" />
 	<arg name="camera_rgb_topic" default="/camera/color/image_raw" />
 
 	<arg name="inference_model" default="ssd-mobilenet-v2" />

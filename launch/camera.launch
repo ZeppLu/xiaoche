@@ -1,9 +1,9 @@
 <launch>
 
-	<arg name="use_realsense" default="false" />
+	<arg name="use_realsense" default="true" />
 	<arg name="width" default="640" />
 	<arg name="height" default="360" />
-	<arg name="fps" default="30.0" />
+	<arg name="fps" default="30" />
 
 	<node unless="$(arg use_realsense)" name="camera" pkg="jetbot_ros" type="jetbot_camera">
 		<param name="width" value="$(arg width)" />
@@ -14,5 +14,16 @@
 		<remap from="~raw" to="~color/image_raw" />
 	</node>
 
-</launch>
+	<include if="$(arg use_realsense)" file="$(find realsense2_camera)/launch/rs_camera.launch">
+		<arg name="enable_color" value="true"/>
+		<arg name="color_width" value="$(arg width)"/>
+		<arg name="color_height" value="$(arg height)"/>
+		<arg name="color_fps" value="$(arg fps)"/>
 
+		<arg name="enable_depth" value="true"/>
+
+		<arg name="enable_sync" value="true"/>
+		<arg name="align_depth" value="true"/>
+	</include>
+
+</launch>
