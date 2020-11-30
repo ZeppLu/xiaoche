@@ -148,6 +148,9 @@ add_executable(target_tracker_node src/target_tracker_node.cpp)
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# make `target_tracker_node' depend on the message this package defines
+# see https://answers.ros.org/question/306884/custom-message-fails-to-build-no-such-file-or-directory/
+add_dependencies(target_tracker_node ${PROJECT_NAME}_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(${PROJECT_NAME}_node
