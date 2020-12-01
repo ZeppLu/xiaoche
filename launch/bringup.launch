@@ -1,0 +1,44 @@
+<launch>
+
+    <!-- Arguments -->
+
+    <arg name="can_port" default="can0" />
+
+    <arg name="camera_enable" default="true" />
+    <arg name="camera_width" default="640" />
+    <arg name="camera_height" default="360" />
+    <arg name="camera_fps" default="30" />
+
+
+    <!-- Base -->
+
+    <node name="scout_base_node" pkg="scout_base" type="scout_base_node" >
+        <param name="port_name" value="$(arg can_port)" />
+        <param name="simulated_robot" value="false" />
+        <param name="odom_frame" value="odom" />
+        <param name="base_frame" value="base_link" />
+    </node>
+
+
+    <!-- Camera, and servo mounting it -->
+
+    <include if="$(arg camera_enable)" file="$(find yahboom)/launch/camera.launch">
+        <arg name="use_realsense" value="true" />
+        <arg name="width" value="$(arg camera_width)" />
+        <arg name="height" value="$(arg camera_height)" />
+        <arg name="fps" value="$(arg camera_fps)" />
+    </include>
+
+    <node if="$(arg camera_enable)" name="camera_servo_node" pkg="yahboom" type="servo_node.py" />
+
+
+    <!-- Robot model, TF, and joint states -->
+
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+        <rosparam param="source_list">["/camera_servo_node/joint_states"]</rosparam>
+    </node>
+
+    <param name="robot_description" command="$(find xacro)/xacro '$(find scout_description)/urdf/mini.xacro' urdf_extras:='$(find yahboom)/urdf/attachments.urdf.xacro'" />
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+
+</launch>

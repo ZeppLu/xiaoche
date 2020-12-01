@@ -68,6 +68,13 @@
   <exec_depend>vision_msgs</exec_depend>
   <exec_depend>jetbot_ros</exec_depend>
   <exec_depend>ros_deep_learning</exec_depend>
+  <exec_depend>realsense2_camera</exec_depend>
+  <exec_depend>realsense2_description</exec_depend>
+  <exec_depend>scout_base</exec_depend>
+  <exec_depend>scout_description</exec_depend>
+  <exec_depend>joint_state_publisher</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>xacro</exec_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

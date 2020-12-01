@@ -1,9 +1,10 @@
 <launch>
 
-	<node name="target_tracker" pkg="yahboom" type="target_tracker_node">
+	<node name="target_tracker_node" pkg="yahboom" type="target_tracker_node">
 		<rosparam command="load" file="$(find yahboom)/config/tracker.yaml" />
 		<param name="view/width" value="640" />
 		<param name="view/height" value="360" />
+		<param name="servo_center_service_name" value="/camera_servo_node/center" />
 	</node>
 
 </launch>
