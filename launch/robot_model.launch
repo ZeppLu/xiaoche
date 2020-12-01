@@ -1,0 +1,15 @@
+<launch>
+
+    <arg name="camera_servo_joint_cmd" default="/servo/joint_states" />
+
+
+    <param name="robot_description" command="$(find xacro)/xacro '$(find scout_description)/urdf/mini.xacro' urdf_extras:='$(find xiaoche)/urdf/attachments.urdf.xacro'" />
+
+
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+        <rosparam param="source_list" subst_value="true">["$(arg camera_servo_joint_cmd)"]</rosparam>
+    </node>
+
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+
+</launch>
