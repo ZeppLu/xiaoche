@@ -2,7 +2,7 @@
 #include <geometry_msgs/Pose2D.h>
 #include <std_srvs/Empty.h>
 
-#include <yahboom/SteeringAngle.h>
+#include <xiaoche/SteeringAngle.h>
 
 
 class PID {
@@ -97,7 +97,7 @@ public:
 
         // subscriber and publisher
         target_sub = nh.subscribe("target_filtered", 1, &Tracker::target_pose_callback, this);
-        angle_pub = nh.advertise<yahboom::SteeringAngle>("servo_angle", 1, true);
+        angle_pub = nh.advertise<xiaoche::SteeringAngle>("servo_angle", 1, true);
     }
 
     void target_pose_callback(const geometry_msgs::Pose2DConstPtr& pose) {
@@ -134,7 +134,7 @@ private:
     // you want to keep target around target's coordinate
     geometry_msgs::Pose2D target;
     // used to store the position of servo
-    yahboom::SteeringAngle angle;
+    xiaoche::SteeringAngle angle;
     // don't apply control until error exceeds [-tolerance, tolerance]
     double tolerance;
     // used to calculate dt, which is passed to PID controller

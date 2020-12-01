@@ -22,14 +22,14 @@
 
     <!-- Camera, and servo mounting it -->
 
-    <include if="$(arg camera_enable)" file="$(find yahboom)/launch/camera.launch">
+    <include if="$(arg camera_enable)" file="$(find xiaoche)/launch/camera.launch">
         <arg name="use_realsense" value="true" />
         <arg name="width" value="$(arg camera_width)" />
         <arg name="height" value="$(arg camera_height)" />
         <arg name="fps" value="$(arg camera_fps)" />
     </include>
 
-    <node if="$(arg camera_enable)" name="camera_servo_node" pkg="yahboom" type="servo_node.py" />
+    <node if="$(arg camera_enable)" name="camera_servo_node" pkg="xiaoche" type="servo_node.py" />
 
 
     <!-- Robot model, TF, and joint states -->
@@ -38,7 +38,7 @@
         <rosparam param="source_list">["/camera_servo_node/joint_states"]</rosparam>
     </node>
 
-    <param name="robot_description" command="$(find xacro)/xacro '$(find scout_description)/urdf/mini.xacro' urdf_extras:='$(find yahboom)/urdf/attachments.urdf.xacro'" />
+    <param name="robot_description" command="$(find xacro)/xacro '$(find scout_description)/urdf/mini.xacro' urdf_extras:='$(find xiaoche)/urdf/attachments.urdf.xacro'" />
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
 
 </launch>

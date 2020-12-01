@@ -21,7 +21,7 @@
 		<xacro:property name="vservo_mountpoint_offset_y" value="0"/>
 		<xacro:property name="vservo_mountpoint_offset_z" value="-0.015"/>
 
-		<xacro:include filename="$(find yahboom)/urdf/materials.urdf.xacro"/>
+		<xacro:include filename="$(find xiaoche)/urdf/materials.urdf.xacro"/>
 
 
 		<!-- Connect to parent link -->

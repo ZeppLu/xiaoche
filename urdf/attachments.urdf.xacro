@@ -4,7 +4,7 @@
     <!-- Set to true to output more frames, including color/depth/infra, etc -->
     <xacro:property name="rs2_use_nominal_extrinsics" default="true" />
 
-    <xacro:include filename="$(find yahboom)/urdf/gimbal.urdf.xacro" />
+    <xacro:include filename="$(find xiaoche)/urdf/gimbal.urdf.xacro" />
     <xacro:include filename="$(find realsense2_description)/urdf/_d435i.urdf.xacro"/>
 
     <xacro:gimbal prefix="gimbal" parent="base_link" >

@@ -3,7 +3,7 @@
 import rospy
 from std_srvs.srv import Empty, EmptyResponse
 from sensor_msgs.msg import JointState
-from yahboom.msg import SteeringAngle
+from xiaoche.msg import SteeringAngle
 
 from math import pi
 

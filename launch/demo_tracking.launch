@@ -7,7 +7,7 @@
 	<arg name="inference_model" default="ssd-mobilenet-v2" />
 
 
-	<include file="$(find yahboom)/launch/bringup.launch">
+	<include file="$(find xiaoche)/launch/bringup.launch">
 		<arg name="camera_enable" value="true" />
 		<arg name="camera_width" value="$(arg camera_width)" />
 		<arg name="camera_height" value="$(arg camera_height)" />
@@ -15,21 +15,21 @@
 	</include>
 
 
-	<include file="$(find yahboom)/launch/detection_nn.launch">
+	<include file="$(find xiaoche)/launch/detection_nn.launch">
 		<arg name="model_name" value="$(arg inference_model)" />
 		<arg name="image_raw" value="$(arg camera_rgb_topic)" />
 	</include>
 
 
-	<node name="target_filter_node" pkg="yahboom" type="bbox_filter_node">
+	<node name="target_filter_node" pkg="xiaoche" type="bbox_filter_node">
 		<param name="average_secs" value="0.5" />
 		<remap from="~detections" to="/detectnet_node/detections" />
 	</node>
 
 
 <!-- Temperarily removed to enable easy changing of PID parameters -->
-	<node name="target_tracker_node" pkg="yahboom" type="target_tracker_node">
-		<rosparam command="load" file="$(find yahboom)/config/tracker.yaml" />
+	<node name="target_tracker_node" pkg="xiaoche" type="target_tracker_node">
+		<rosparam command="load" file="$(find xiaoche)/config/tracker.yaml" />
 		<param name="view/width" value="$(arg camera_width)" />
 		<param name="view/height" value="$(arg camera_height)" />
 		<param name="servo_center_service_name" value="/camera_servo_node/center" />
