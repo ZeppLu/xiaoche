@@ -8,11 +8,14 @@ project(xiaoche)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  cv_bridge
+  geometry_msgs
+  image_transport
+  message_filters
   message_generation
   roscpp
   rospy
   std_msgs
-  geometry_msgs
   vision_msgs
 )
 
@@ -104,12 +107,12 @@ generate_messages(
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
-catkin_package(
+#catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES xiaoche
-  CATKIN_DEPENDS message_runtime roscpp rospy std_msgs geometry_msgs vision_msgs
+#  CATKIN_DEPENDS ...
 #  DEPENDS system_lib
-)
+#)
 
 ###########
 ## Build ##
@@ -137,6 +140,7 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/xiaoche_node.cpp)
 add_executable(bbox_filter_node src/bbox_filter_node.cpp)
+add_executable(target_locator_node src/target_locator_node.cpp)
 add_executable(target_tracker_node src/target_tracker_node.cpp)
 
 ## Rename C++ executable without prefix
@@ -157,6 +161,7 @@ add_dependencies(target_tracker_node ${PROJECT_NAME}_generate_messages_cpp)
 #   ${catkin_LIBRARIES}
 # )
 target_link_libraries(bbox_filter_node ${catkin_LIBRARIES})
+target_link_libraries(target_locator_node ${catkin_LIBRARIES})
 target_link_libraries(target_tracker_node ${catkin_LIBRARIES})
 
 #############

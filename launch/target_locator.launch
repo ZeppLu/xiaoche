@@ -1,0 +1,18 @@
+<launch>
+
+
+    <node name="test_target_locator" pkg="xiaoche" type="target_locator_node" output="screen">
+        <remap from="~depth_image_in/compressed" to="/camera/aligned_depth_to_color/image_raw/compressed"/>
+        <remap from="~detections" to="/detectnet_node/detections"/>
+
+        <param name="image_transport" value="compressed"/>
+
+        <param name="lower_bound_ms" value="0"/>
+        <param name="age_penalty" value="1.0"/>
+
+        <param name="horizontal_rate" value="0.8" />
+        <param name="vertical_rate" value="0.8" />
+    </node>
+
+
+</launch>
