@@ -8,7 +8,7 @@
 
 
 	<include file="$(find xiaoche)/launch/bringup.launch">
-		<arg name="camera_enable" value="true" />
+		<arg name="with_camera" value="true" />
 		<arg name="camera_width" value="$(arg camera_width)" />
 		<arg name="camera_height" value="$(arg camera_height)" />
 		<arg name="camera_fps" value="$(arg camera_fps)" />

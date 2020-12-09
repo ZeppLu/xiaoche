@@ -2,9 +2,11 @@
 
     <!-- Arguments -->
 
+    <arg name="with_camera" default="false" />
+    <arg name="with_lidar" default="false" />
+
     <arg name="can_port" default="can0" />
 
-    <arg name="camera_enable" default="true" />
     <arg name="camera_width" default="640" />
     <arg name="camera_height" default="360" />
     <arg name="camera_fps" default="30" />
@@ -22,14 +24,21 @@
 
     <!-- Camera, and servo mounting it -->
 
-    <include if="$(arg camera_enable)" file="$(find xiaoche)/launch/camera.launch">
+    <include if="$(arg with_camera)" file="$(find xiaoche)/launch/camera.launch">
         <arg name="use_realsense" value="true" />
         <arg name="width" value="$(arg camera_width)" />
         <arg name="height" value="$(arg camera_height)" />
         <arg name="fps" value="$(arg camera_fps)" />
     </include>
 
-    <node if="$(arg camera_enable)" name="camera_servo_node" pkg="xiaoche" type="servo_node.py" />
+    <node name="camera_servo_node" pkg="xiaoche" type="servo_node.py" />
+
+
+    <!-- Lidar -->
+
+    <include if="$(arg with_lidar)" file="$(find xiaoche)/launch/lidar.launch">
+        <arg name="frame_id" value="laser" />
+    </include>
 
 
     <!-- Robot model, TF, and joint states -->
