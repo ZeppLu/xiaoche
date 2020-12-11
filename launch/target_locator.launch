@@ -1,17 +1,29 @@
 <launch>
 
+	<arg name="camera_depth_ns" default="camera/aligned_depth_to_color" />
+
+    <arg name="detections_topic" default="detectnet_node/detections" />
+
 
     <node name="test_target_locator" pkg="xiaoche" type="target_locator_node" output="screen">
-        <remap from="~depth_image_in/compressed" to="/camera/aligned_depth_to_color/image_raw/compressed"/>
-        <remap from="~detections" to="/detectnet_node/detections"/>
 
-        <param name="image_transport" value="compressed"/>
+        <remap from="~detections" to="$(arg detections_topic)" />
+        <remap from="~depth_image_raw" to="$(arg camera_depth_ns)/image_raw" />
+        <remap from="~depth_camera_info" to="$(arg camera_depth_ns)/camera_info" />
 
+        <!-- How long do we wait until message of type sensor_msgs/CameraInfo is received -->
+        <param name="camera_info_timeout" value="5.0" />
+
+<!--        <param name="image_transport" value="compressed"/> -->
+
+        <!-- Used by message_filters, to synchronize messages on different topics -->
         <param name="lower_bound_ms" value="0"/>
         <param name="age_penalty" value="1.0"/>
 
+        <!-- How many percent of the bbox is used to calculate average distance -->
         <param name="horizontal_rate" value="0.8" />
         <param name="vertical_rate" value="0.8" />
+
     </node>
 
 

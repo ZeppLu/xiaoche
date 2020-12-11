@@ -1,0 +1,33 @@
+<launch>
+
+	<arg name="camera_width" default="640" />
+	<arg name="camera_height" default="360" />
+	<arg name="camera_fps" default="30" />
+
+	<arg name="camera_rgb_ns" default="camera/color" />
+	<arg name="camera_depth_ns" default="camera/aligned_depth_to_color" />
+
+	<arg name="inference_model" default="ssd-mobilenet-v2" />
+
+
+	<include file="$(find xiaoche)/launch/bringup.launch">
+		<arg name="with_camera" value="true" />
+		<arg name="camera_width" value="$(arg camera_width)" />
+		<arg name="camera_height" value="$(arg camera_height)" />
+		<arg name="camera_fps" value="$(arg camera_fps)" />
+	</include>
+
+
+	<include file="$(find xiaoche)/launch/detection_nn.launch">
+		<arg name="model_name" value="$(arg inference_model)" />
+		<arg name="image_raw" value="$(arg camera_rgb_ns)/image_raw" />
+	</include>
+
+
+    <include file="$(find xiaoche)/launch/target_locator.launch">
+        <arg name="camera_depth_ns" value="$(arg camera_depth_ns)" />
+        <arg name="detections_topic" value="detectnet_node/detections" />
+    </include>
+
+
+</launch>
