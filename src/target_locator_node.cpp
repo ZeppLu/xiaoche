@@ -30,7 +30,9 @@ public:
 		, sync(SyncPol(3))  // queue_size = 3
 		, tf_broadcaster()
 		, transform(tf::Quaternion::getIdentity())
+		, dist_msg()
 		{}
+
 	void setup();
 
 	// see http://wiki.ros.org/message_filters/ApproximateTime for details
@@ -38,7 +40,9 @@ public:
 	using Synchronizer = message_filters::Synchronizer<SyncPol>;
 
 private:
-	void get_intrinsics(const sensor_msgs::CameraInfoConstPtr& cam_info);
+	void get_intrinsics(const sensor_msgs::CameraInfo& cam_info);
+
+	double calc_mean_distance(const cv::Mat& depth, const vision_msgs::BoundingBox2D& bbox) const;
 
 	void detections_and_depth_callback(
 		const vision_msgs::Detection2DArrayConstPtr& detections,
@@ -49,14 +53,16 @@ private:
 	image_transport::ImageTransport it;
 	image_transport::ImageTransport priv_it;
 
-	Synchronizer sync;
-
 	tf::TransformBroadcaster tf_broadcaster;
 	tf::Transform transform;
 
 	message_filters::Subscriber<vision_msgs::Detection2DArray> detect_sub;
 	image_transport::SubscriberFilter depth_sub;
+
+	Synchronizer sync;
+
 	ros::Publisher dist_pub;
+	std_msgs::Float64 dist_msg;
 
 	double horizontal_rate;
 	double vertical_rate;
@@ -97,7 +103,7 @@ void TargetLocator::setup() {
 	if (cam_info == nullptr) {
 		throw ros::Exception("cannot receive CameraInfo message!");
 	}
-	this->get_intrinsics(cam_info);
+	this->get_intrinsics(*cam_info);
 	this->src_frame = cam_info->header.frame_id;
 
 	// target frame name
@@ -120,10 +126,10 @@ void TargetLocator::setup() {
 
 
 
-void TargetLocator::get_intrinsics(const sensor_msgs::CameraInfoConstPtr& cam_info) {
+void TargetLocator::get_intrinsics(const sensor_msgs::CameraInfo& cam_info) {
 	// for now, do some assumptions
-	assert(cam_info->distortion_model == "plumb_bob");
-	for (auto coeff : cam_info->D) {
+	assert(cam_info.distortion_model == "plumb_bob");
+	for (auto coeff : cam_info.D) {
 		assert(coeff == 0.0);
 	}
 	// apply assumption
@@ -135,12 +141,31 @@ void TargetLocator::get_intrinsics(const sensor_msgs::CameraInfoConstPtr& cam_in
 	//     [fx  0 cx]
 	// K = [ 0 fy cy]
 	//     [ 0  0  1]
-	this->intrin.width	= (int)cam_info->width;
-	this->intrin.height	= (int)cam_info->height;
-	this->intrin.ppx	= (float)cam_info->K[2];
-	this->intrin.ppy	= (float)cam_info->K[5];
-	this->intrin.fx	= (float)cam_info->K[0];
-	this->intrin.fy	= (float)cam_info->K[4];
+	this->intrin.width	= (int)cam_info.width;
+	this->intrin.height	= (int)cam_info.height;
+	this->intrin.ppx	= (float)cam_info.K[2];
+	this->intrin.ppy	= (float)cam_info.K[5];
+	this->intrin.fx	= (float)cam_info.K[0];
+	this->intrin.fy	= (float)cam_info.K[4];
+}
+
+
+
+double TargetLocator::calc_mean_distance(const cv::Mat& depth, const vision_msgs::BoundingBox2D& bbox) const {
+	// get ROI (x_topleft, y_topleft, width, height)
+	double width = bbox.size_x * this->horizontal_rate;
+	double height = bbox.size_y * this->vertical_rate;
+	double x = bbox.center.x - width / 2.0;
+	double y = bbox.center.y - height / 2.0;
+	// crop
+	cv::Mat target_depth = depth(cv::Rect(x, y, width, height));
+
+	// calculate mean distance
+	// TODO: ignore depth hole (value==0)
+	double distance_mm = cv::mean(target_depth, target_depth > 0.0).val[0];
+
+	// 1m == 1000mm
+	return distance_mm / 1000.0;
 }
 
 
@@ -165,24 +190,14 @@ void TargetLocator::detections_and_depth_callback(
 		ROS_ERROR("cv_bridge exception: %s", e.what());
 	}
 
-	// get ROI (x_topleft, y_topleft, width, height)
-	double width = bbox.size_x * horizontal_rate;
-	double height = bbox.size_y * vertical_rate;
-	double x = bbox.center.x - width / 2.0;
-	double y = bbox.center.y - height / 2.0;
-	// crop
-	cv::Mat target_depth = cv_ptr->image(cv::Rect(x, y, width, height));
-
-	// calculate mean distance
-	// TODO: ignore depth hole (value==0)
-	double distance = cv::mean(target_depth).val[0] / 1000.0;
-	// 1m == 1000mm
-	dist_pub.publish(distance);
+	// calculate mean distance and publish
+	this->dist_msg.data = this->calc_mean_distance(cv_ptr->image, bbox);
+	dist_pub.publish(dist_msg);
 
 	// deproject image coordinate & distance to 3D coordinate
 	float pixel[2] = { (float)bbox.center.x, (float)bbox.center.y };
 	float point[3] = { 0, 0, 0};
-	rs2_deproject_pixel_to_point(point, &intrin, pixel, distance);
+	rs2_deproject_pixel_to_point(point, &intrin, pixel, this->dist_msg.data);
 
 	// send transform
 	this->transform.setOrigin(tf::Vector3(point[0], point[1], point[2]));
