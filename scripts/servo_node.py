@@ -57,8 +57,6 @@ def main():
     pitch_joint = rospy.get_param('~pitch_joint', "gimbal_vservo_handle_joint")
 
     device = SteeringGear(yaw_joint, pitch_joint)
-    rospy.Subscriber('servo_angle', SteeringAngle, device.set_angle)
-    rospy.Service('~center', Empty, device.center_service)
 
     # indicate limits
     # you should get these params after /servo_node/center service is available
@@ -66,6 +64,9 @@ def main():
     rospy.set_param('~yaw_min', (device.YAW_MIN - device.YAW_MEDIAN) / device.YAW_SCALE)
     rospy.set_param('~pitch_max', (device.PITCH_MAX - device.PITCH_MEDIAN) / device.PITCH_SCALE)
     rospy.set_param('~pitch_min', (device.PITCH_MIN - device.PITCH_MEDIAN) / device.PITCH_SCALE)
+
+    rospy.Subscriber('servo_angle', SteeringAngle, device.set_angle)
+    rospy.Service('~center', Empty, device.center_service)
 
     rospy.spin()
     device.cleanup()
