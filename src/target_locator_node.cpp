@@ -44,9 +44,15 @@ private:
 
 	double calc_mean_distance(const cv::Mat& depth, const vision_msgs::BoundingBox2D& bbox) const;
 
+	const vision_msgs::BoundingBox2D& guess_target_bbox(
+		const vision_msgs::Detection2DArray& detections,
+		const sensor_msgs::Image& depth
+	);
+
 	void detections_and_depth_callback(
 		const vision_msgs::Detection2DArrayConstPtr& detections,
-		const sensor_msgs::ImageConstPtr& depth);
+		const sensor_msgs::ImageConstPtr& depth
+	);
 
 	ros::NodeHandle nh;
 	ros::NodeHandle priv_nh;
@@ -170,16 +176,39 @@ double TargetLocator::calc_mean_distance(const cv::Mat& depth, const vision_msgs
 
 
 
+const vision_msgs::BoundingBox2D& TargetLocator::guess_target_bbox(
+		const vision_msgs::Detection2DArray& detections,
+		const sensor_msgs::Image& depth) {
+
+	// TODO: use optical flow by comparing to previous depth image
+	//static sensor_msgs::Image depth_prev;
+	const vision_msgs::BoundingBox2D *bbox = nullptr;
+	// for now, use the largest bbox
+	double max_area = std::numeric_limits<double>::min();
+	for (auto& detection : detections.detections) {
+		double area = detection.bbox.size_x * detection.bbox.size_y;
+		if (area > max_area) {
+			bbox = &detection.bbox;
+			max_area = area;
+		}
+	}
+	return *bbox;
+}
+
+
 void TargetLocator::detections_and_depth_callback(
 		const vision_msgs::Detection2DArrayConstPtr& detections,
 		const sensor_msgs::ImageConstPtr& depth) {
 
-	// detection network should output only 1 class, so 0 or 1 bbox
-	assert(detections->detections.size() <= 1);
 	if (detections->detections.empty()) {
 		return;
 	}
-	const vision_msgs::BoundingBox2D& bbox = detections->detections[0].bbox;
+	//const vision_msgs::BoundingBox2D& bbox = detections->detections[0].bbox;
+	const vision_msgs::BoundingBox2D& bbox = this->guess_target_bbox(*detections, *depth);
+	// if we've chosen a single bbox out of several, display them
+	if (detections->detections.size() > 1) {
+		ROS_DEBUG_STREAM("choose\n" << bbox << "out of\n" << *detections);
+	}
 
 	// initialize cv_bridge pointer
 	cv_bridge::CvImageConstPtr cv_ptr;
