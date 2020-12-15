@@ -5,7 +5,7 @@
     <arg name="detections_topic" default="detectnet_node/detections" />
 
 
-    <node name="test_target_locator" pkg="xiaoche" type="target_locator_node" output="screen">
+    <node name="test_target_locator" pkg="xiaoche" type="target_locator_node" required="true" output="screen">
 
         <remap from="~detections" to="$(arg detections_topic)" />
         <remap from="~depth_image_raw" to="$(arg camera_depth_ns)/image_raw" />

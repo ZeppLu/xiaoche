@@ -3,7 +3,7 @@
 	<arg name="model_name" default="ssd-mobilenet-v2" />
 	<arg name="image_raw" default="/camera/color/image_raw" />
 
-	<node name="detectnet_node" pkg="ros_deep_learning" type="detectnet">
+	<node name="detectnet_node" pkg="ros_deep_learning" type="detectnet" required="true">
 		<param name="model_name" value="$(arg model_name)" />
 		<remap from="~image_in" to="$(arg image_raw)" />
 	</node>

@@ -14,7 +14,7 @@
 
     <!-- Base -->
 
-    <node name="scout_base_node" pkg="scout_base" type="scout_base_node" >
+    <node name="scout_base_node" pkg="scout_base" type="scout_base_node" required="true" >
         <param name="port_name" value="$(arg can_port)" />
         <param name="simulated_robot" value="false" />
         <param name="odom_frame" value="odom" />
@@ -31,7 +31,10 @@
         <arg name="fps" value="$(arg camera_fps)" />
     </include>
 
-    <node name="camera_servo_node" pkg="xiaoche" type="servo_node.py" />
+    <node name="camera_servo_node" pkg="xiaoche" type="servo_node.py">
+        <param name="yaw_joint" value="gimbal_hservo_vservo_joint" />
+        <param name="pitch_joint" value="gimbal_vservo_handle_joint" />
+    </node>
 
 
     <!-- Lidar -->

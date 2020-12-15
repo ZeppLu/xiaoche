@@ -14,6 +14,7 @@
 		<remap from="~raw" to="~color/image_raw" />
 	</node>
 
+	<!-- TODO: use includes/nodelets.launch.xml instead, make it required -->
 	<rosparam file="$(find xiaoche)/config/camera.yaml" />
 	<include if="$(arg use_realsense)" file="$(find realsense2_camera)/launch/rs_camera.launch">
 		<arg name="enable_color" value="true"/>
