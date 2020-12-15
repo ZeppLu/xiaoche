@@ -141,6 +141,7 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/xiaoche_node.cpp)
 add_executable(bbox_filter_node src/bbox_filter_node.cpp)
+add_executable(controller_node src/controller_node.cpp)
 add_executable(target_locator_node src/target_locator_node.cpp)
 add_executable(target_tracker_node src/target_tracker_node.cpp)
 
@@ -156,12 +157,14 @@ add_executable(target_tracker_node src/target_tracker_node.cpp)
 # make `target_tracker_node' depend on the message this package defines
 # see https://answers.ros.org/question/306884/custom-message-fails-to-build-no-such-file-or-directory/
 add_dependencies(target_tracker_node ${PROJECT_NAME}_generate_messages_cpp)
+add_dependencies(controller_node ${PROJECT_NAME}_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
 target_link_libraries(bbox_filter_node ${catkin_LIBRARIES})
+target_link_libraries(controller_node ${catkin_LIBRARIES})
 target_link_libraries(target_locator_node ${catkin_LIBRARIES})
 target_link_libraries(target_tracker_node ${catkin_LIBRARIES})
 

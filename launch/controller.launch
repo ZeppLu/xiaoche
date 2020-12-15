@@ -1,0 +1,20 @@
+<launch>
+
+    <arg name="camera_servo_name" default="camera_servo_node" />
+
+    <node name="controller_node" pkg="xiaoche" type="controller_node" output="screen">
+        <!-- Frames ID -->
+        <param name="base_link_frame" value="base_link" />
+        <param name="camera_frame" value="camera_color_frame" />
+        <param name="target_frame" value="target" />
+        <!-- Following behaviour -->
+        <param name="angular_velocity" value="0.2" />
+        <param name="linear_velocity" value="0.2" />
+        <param name="follow_distance" value="3" />
+        <param name="follow_distance_tolerance" value="0.5" />
+        <param name="follow_angle_tolerance" value="0.25" />
+        <!-- To whom we need to contact -->
+        <param name="servo_node_name" value="$(arg camera_servo_name)" />
+    </node>
+
+</launch>
