@@ -200,6 +200,11 @@ void TargetLocator::detections_and_depth_callback(
 		const vision_msgs::Detection2DArrayConstPtr& detections,
 		const sensor_msgs::ImageConstPtr& depth) {
 
+	ROS_INFO_THROTTLE(5.0,
+		"detections delay: %fs; depth delay: %fs",
+		(ros::Time::now() - detections->header.stamp).toSec(),
+		(ros::Time::now() - depth->header.stamp).toSec());
+
 	if (detections->detections.empty()) {
 		return;
 	}

@@ -176,6 +176,7 @@ void Controller::clear_messages() {
 }
 
 
+
 int main(int argc, char** argv) {
     ros::init(argc, argv, "controller_node");
 
@@ -184,10 +185,10 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    ros::Rate rate_100hz(100);
+    ros::Rate rate(60);
     while (ros::ok()) {
         controller.step();
-        rate_100hz.sleep();
+        rate.sleep();
         // no need to spin, cause controller register no callback,
         // it only ask for transform when needed
     }
