@@ -1,3 +1,5 @@
+#include <signal.h>
+
 #include <ros/ros.h>
 
 #include <geometry_msgs/Twist.h>
@@ -58,6 +60,9 @@ public:
     // step forward
     void step();
 
+    // currently it only sets linear.{x,y}, angular.z and angle to 0
+    void stop();
+
 private:
     enum State {
         NOT_INIT,
@@ -70,8 +75,9 @@ private:
     void clear_messages();
 
     // ros specific
-    ros::Publisher cmd_vel_pub, angle_pub;
-    tf::TransformListener listener;
+    // use pointer type so that object can be init before ros::init()
+    std::unique_ptr<ros::Publisher> cmd_vel_pub, angle_pub;
+    std::unique_ptr<tf::TransformListener> listener;
 
     // data that are assigned only once and never change
     std::string base_link_frame, camera_frame, target_frame;
@@ -115,8 +121,13 @@ bool Controller::setup(ros::NodeHandle& nh, ros::NodeHandle& priv_nh) {
     assert(filter_N > 0);
     this->filter = CommandsFilter(filter_N);
 
-    this->cmd_vel_pub = nh.advertise<geometry_msgs::Twist>("cmd_vel", 10);
-    this->angle_pub = nh.advertise<xiaoche::SteeringAngle>("servo_angle", 10);
+    // standard way to create new publisher is through `nh.advertise()',
+    // which returns rvalue whose address can not be taken,
+    // so we must use `make_unique()' to convert it to pointer
+    this->cmd_vel_pub = std::make_unique<ros::Publisher>(nh.advertise<geometry_msgs::Twist>("cmd_vel", 10));
+    this->angle_pub = std::make_unique<ros::Publisher>(nh.advertise<xiaoche::SteeringAngle>("servo_angle", 10));
+    // transform listener can be created via `new', so a `reset()' is enough
+    this->listener.reset(new tf::TransformListener());
 
     // wait and call service to center camera
     std::string servo_node;
@@ -198,15 +209,28 @@ void Controller::step() {
     cmd_vel_msg.linear.x = linear_x;
     cmd_vel_msg.angular.z = angular_z;
     angle_msg.yaw = yaw;
-    this->cmd_vel_pub.publish(cmd_vel_msg);
+    this->cmd_vel_pub->publish(cmd_vel_msg);
     //this->angle_pub.publish(angle_msg);
+}
+
+
+void Controller::stop() {
+    if (state != State::NOT_INIT) {
+        cmd_vel_msg.linear.x = 0;
+        cmd_vel_msg.linear.y = 0;
+        cmd_vel_msg.angular.z = 0;
+        angle_msg.yaw = 0;
+        angle_msg.pitch = 0;
+        cmd_vel_pub->publish(cmd_vel_msg);
+        angle_pub->publish(angle_msg);
+    }
 }
 
 
 bool Controller::lookup_transforms() {
     try {
-        this->listener.lookupTransform(base_link_frame, target_frame, ros::Time(0), this->base_to_target);
-        this->listener.lookupTransform(camera_frame, target_frame, ros::Time(0), this->camera_to_target);
+        this->listener->lookupTransform(base_link_frame, target_frame, ros::Time(0), this->base_to_target);
+        this->listener->lookupTransform(camera_frame, target_frame, ros::Time(0), this->camera_to_target);
         return true;
     } catch (tf::TransformException e) {
         ROS_ERROR("failed to lookup transform (%s)", e.what());
@@ -216,14 +240,27 @@ bool Controller::lookup_transforms() {
 
 
 
+// in order to be used in signal handler, controller must be global.
+// no, you can't use lambda expr to capture controller,
+// only functional lambda is convertible to function pointer
+Controller g_controller;
+void sigint_handler(int signal) {
+    g_controller.stop();
+    ros::shutdown();
+}
+
+
 int main(int argc, char** argv) {
-    ros::init(argc, argv, "controller_node");
+    ros::init(argc, argv, "controller_node", ros::init_options::NoSigintHandler);
     ros::NodeHandle nh, priv_nh("~");
 
-    Controller controller;
+    Controller& controller = g_controller;
     if (!controller.setup(nh, priv_nh)) {
         return 1;
     }
+
+    // replace default SIGINT handler, so we can stop robot when exitting
+    signal(SIGINT, sigint_handler);
 
     ros::Rate rate(60);
     while (ros::ok()) {
