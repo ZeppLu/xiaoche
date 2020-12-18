@@ -46,8 +46,6 @@ class Controller {
 public:
     Controller()
         : state(State::NOT_INIT)
-        , nh()
-        , priv_nh("~")
         , listener()
         , cmd_vel_msg()
         , angle_msg()
@@ -55,7 +53,7 @@ public:
         {}
 
     // return true on success, false otherwise
-    bool setup();
+    bool setup(ros::NodeHandle& nh, ros::NodeHandle& priv_nh);
 
     // step forward
     void step();
@@ -72,7 +70,6 @@ private:
     void clear_messages();
 
     // ros specific
-    ros::NodeHandle nh, priv_nh;
     ros::Publisher cmd_vel_pub, angle_pub;
     tf::TransformListener listener;
 
@@ -90,7 +87,7 @@ private:
 };
 
 
-bool Controller::setup() {
+bool Controller::setup(ros::NodeHandle& nh, ros::NodeHandle& priv_nh) {
     priv_nh.param<std::string>("base_link_frame", this->base_link_frame, "base_link");
     priv_nh.param<std::string>("camera_frame", this->camera_frame, "camera_color_frame");
     priv_nh.param<std::string>("target_frame", this->target_frame, "target");
@@ -150,8 +147,6 @@ bool Controller::setup() {
 
 
 void Controller::step() {
-    // TODO: remove this function call
-    this->clear_messages();
     double linear_x = 0, angular_z = 0, yaw = 0;
 
     switch (this->state) {
@@ -220,24 +215,13 @@ bool Controller::lookup_transforms() {
 }
 
 
-void Controller::clear_messages() {
-    this->cmd_vel_msg.angular.x = 0.0;
-    this->cmd_vel_msg.angular.y = 0.0;
-    this->cmd_vel_msg.angular.z = 0.0;
-    this->cmd_vel_msg.linear.x = 0.0;
-    this->cmd_vel_msg.linear.y = 0.0;
-    this->cmd_vel_msg.linear.z = 0.0;
-    this->angle_msg.yaw = 0.0;
-    this->angle_msg.pitch = 0.0;
-}
-
-
 
 int main(int argc, char** argv) {
     ros::init(argc, argv, "controller_node");
+    ros::NodeHandle nh, priv_nh("~");
 
     Controller controller;
-    if (!controller.setup()) {
+    if (!controller.setup(nh, priv_nh)) {
         return 1;
     }
 
