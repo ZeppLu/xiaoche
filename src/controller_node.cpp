@@ -8,6 +8,40 @@
 #include <tf/transform_listener.h>
 
 
+struct CommandsFilter {
+    size_t N;
+    size_t idx;
+
+    struct Command {
+        // these default values are guaranteed by C++11
+        // see https://en.cppreference.com/w/cpp/language/data_members#Member_initialization
+        double linear_x = 0.0;
+        double angular_z = 0.0;
+        double yaw = 0.0;
+    };
+
+    std::vector<Command> buffer;
+
+    CommandsFilter(size_t _N) : N(_N), idx(0), buffer(N, Command()) {}
+
+    Command update(const Command& cmd) {
+        buffer[idx] = cmd;
+        idx = (idx + 1) % N;
+        // average
+        Command result;
+        for (auto& c : buffer) {
+            result.linear_x += c.linear_x;
+            result.angular_z += c.angular_z;
+            result.yaw += c.yaw;
+        }
+        result.linear_x /= N;
+        result.angular_z /= N;
+        result.yaw /= N;
+        return result;
+    }
+};
+
+
 class Controller {
 public:
     Controller()
@@ -17,6 +51,7 @@ public:
         , listener()
         , cmd_vel_msg()
         , angle_msg()
+        , filter(0)
         {}
 
     // return true on success, false otherwise
@@ -51,6 +86,7 @@ private:
     tf::StampedTransform base_to_target, camera_to_target;
     geometry_msgs::Twist cmd_vel_msg;
     xiaoche::SteeringAngle angle_msg;
+    CommandsFilter filter;
 };
 
 
@@ -73,6 +109,14 @@ bool Controller::setup() {
         return false;
     }
     assert(follow_dist_tol > 0 && follow_angle_tol > 0);
+
+    int filter_N;
+    if (!priv_nh.getParam("mean_filter_number", filter_N)) {
+        ROS_ERROR("N of mean filter not set!");
+        return false;
+    }
+    assert(filter_N > 0);
+    this->filter = CommandsFilter(filter_N);
 
     this->cmd_vel_pub = nh.advertise<geometry_msgs::Twist>("cmd_vel", 10);
     this->angle_pub = nh.advertise<xiaoche::SteeringAngle>("servo_angle", 10);
@@ -106,7 +150,9 @@ bool Controller::setup() {
 
 
 void Controller::step() {
+    // TODO: remove this function call
     this->clear_messages();
+    double linear_x = 0, angular_z = 0, yaw = 0;
 
     switch (this->state) {
     case State::NOT_INIT:
@@ -127,17 +173,17 @@ void Controller::step() {
             const tf::Vector3& origin = this->base_to_target.getOrigin();
             double dist = origin.length();
             if (dist < follow_dist - follow_dist_tol) {
-                this->cmd_vel_msg.linear.x = -linear_vel;
+                linear_x = -linear_vel;
             }
             if (dist > follow_dist + follow_dist_tol) {
-                this->cmd_vel_msg.linear.x =  linear_vel;
+                linear_x =  linear_vel;
             }
             double angle = std::atan2(origin.y(), origin.x());
             if (angle < -follow_angle_tol) {
-                this->cmd_vel_msg.angular.z = -angular_vel;
+                angular_z = -angular_vel;
             }
             if (angle >  follow_angle_tol) {
-                this->cmd_vel_msg.angular.z =  angular_vel;
+                angular_z =  angular_vel;
             }
 	}
         break;
@@ -146,7 +192,17 @@ void Controller::step() {
         throw ros::Exception("unknown controller state");
     }
 
+    // average filter
+    CommandsFilter::Command cmd = filter.update({
+        linear_x,
+        angular_z,
+        yaw
+    });
+
     // publish messages
+    cmd_vel_msg.linear.x = linear_x;
+    cmd_vel_msg.angular.z = angular_z;
+    angle_msg.yaw = yaw;
     this->cmd_vel_pub.publish(cmd_vel_msg);
     //this->angle_pub.publish(angle_msg);
 }

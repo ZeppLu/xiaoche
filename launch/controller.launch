@@ -15,6 +15,8 @@
         <param name="follow_angle_tolerance" value="0.2" />
         <!-- To whom we need to contact -->
         <param name="servo_node_name" value="$(arg camera_servo_name)" />
+        <!-- Mean filter on published commands -->
+        <param name="mean_filter_number" value="5" />
     </node>
 
 </launch>
