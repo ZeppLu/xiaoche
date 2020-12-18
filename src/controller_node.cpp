@@ -191,7 +191,7 @@ void Controller::step() {
             if (angle >  follow_angle_tol) {
                 angular_z =  angular_vel;
             }
-	}
+	    }
         break;
 
     default:
