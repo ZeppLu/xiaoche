@@ -3,9 +3,16 @@
 	<arg name="model_name" default="ssd-mobilenet-v2" />
 	<arg name="image_raw" default="/camera/color/image_raw" />
 
-	<node name="detectnet_node" pkg="ros_deep_learning" type="detectnet" required="true">
+	<arg name="external_manager" default="false" />
+	<arg name="manager" default="nodelet_manager" />
+
+
+	<node unless="$(arg external_manager)" pkg="nodelet" type="nodelet" name="$(arg manager)" args="manager" required="true" />
+
+	<node pkg="nodelet" type="nodelet" name="detectnet_nodelet" args="load ros_deep_learning/detectnet_node $(arg manager)" required="true" output="screen">
 		<param name="model_name" value="$(arg model_name)" />
 		<remap from="~image_in" to="$(arg image_raw)" />
 	</node>
+
 
 </launch>

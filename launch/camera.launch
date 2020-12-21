@@ -5,6 +5,10 @@
 	<arg name="height" default="360" />
 	<arg name="fps" default="30" />
 
+	<arg name="external_manager" default="false" />
+	<arg name="manager" default="nodelet_manager" />
+
+
 	<node unless="$(arg use_realsense)" name="camera" pkg="jetbot_ros" type="jetbot_camera">
 		<param name="width" value="$(arg width)" />
 		<param name="height" value="$(arg height)" />
@@ -26,6 +30,9 @@
 
 		<arg name="enable_sync" value="true"/>
 		<arg name="align_depth" value="true"/>
+
+		<arg name="external_manager" value="$(arg external_manager)" />
+		<arg name="manager" value="$(arg manager)" />
 	</include>
 
 </launch>

@@ -1,8 +1,8 @@
 <launch>
 
-	<arg name="camera_depth_ns" default="camera/aligned_depth_to_color" />
+    <arg name="camera_depth_ns" default="camera/aligned_depth_to_color" />
 
-    <arg name="detections_topic" default="detectnet_node/detections" />
+    <arg name="detections_topic" default="detectnet_nodelet/detections" />
 
 
     <node name="test_target_locator" pkg="xiaoche" type="target_locator_node" required="true" output="screen">

@@ -2,6 +2,8 @@
 
     <!-- Arguments -->
 
+    <arg name="nodelets_manager" default="xiaoche_nodelets_manager" />
+
     <arg name="with_camera" default="false" />
     <arg name="with_lidar" default="false" />
 
@@ -12,7 +14,7 @@
     <arg name="camera_fps" default="30" />
 
 
-    <!-- Base -->
+    <!-- Fundamental -->
 
     <node name="scout_base_node" pkg="scout_base" type="scout_base_node" required="true" >
         <param name="port_name" value="$(arg can_port)" />
@@ -20,6 +22,8 @@
         <param name="odom_frame" value="odom" />
         <param name="base_frame" value="base_link" />
     </node>
+
+    <node name="$(arg nodelets_manager)" pkg="nodelet" type="nodelet" args="manager" required="true" />
 
 
     <!-- Camera, and servo mounting it -->
@@ -29,6 +33,10 @@
         <arg name="width" value="$(arg camera_width)" />
         <arg name="height" value="$(arg camera_height)" />
         <arg name="fps" value="$(arg camera_fps)" />
+
+        <arg name="external_manager" value="true" />
+        <!-- realsense2_camera is usually namespaced, so add a slash prefix -->
+        <arg name="manager" value="/$(arg nodelets_manager)" />
     </include>
 
     <node name="camera_servo_node" pkg="xiaoche" type="servo_node.py">

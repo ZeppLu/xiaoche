@@ -27,7 +27,7 @@ public:
 		, priv_nh("~")
 		, it(nh)
 		, priv_it(priv_nh)
-		, sync(SyncPol(10))  // queue_size = 10
+		, sync(SyncPol(5))  // queue_size = 5
 		, tf_broadcaster()
 		, transform(tf::Quaternion::getIdentity())
 		, dist_msg()
