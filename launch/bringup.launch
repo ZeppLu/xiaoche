@@ -16,14 +16,14 @@
 
     <!-- Fundamental -->
 
-    <node name="scout_base_node" pkg="scout_base" type="scout_base_node" required="true" >
+    <node name="scout_base_node" pkg="scout_base" type="scout_base_node" required="true">
         <param name="port_name" value="$(arg can_port)" />
         <param name="simulated_robot" value="false" />
         <param name="odom_frame" value="odom" />
         <param name="base_frame" value="base_link" />
     </node>
 
-    <node name="$(arg nodelets_manager)" pkg="nodelet" type="nodelet" args="manager" required="true" />
+    <node name="$(arg nodelets_manager)" pkg="nodelet" type="nodelet" args="manager" required="true" output="screen" />
 
 
     <!-- Camera, and servo mounting it -->

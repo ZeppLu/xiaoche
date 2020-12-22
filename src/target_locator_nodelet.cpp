@@ -16,30 +16,29 @@
 
 #include <tf/transform_broadcaster.h>
 
+#include <nodelet/nodelet.h>
+#include <pluginlib/class_list_macros.h>
+
 #include <librealsense2/rsutil.h>
 
 
+namespace xiaoche {
 
-class TargetLocator {
+class TargetLocator : public nodelet::Nodelet {
 public:
 	TargetLocator()
-		: nh()
-		, priv_nh("~")
-		, it(nh)
-		, priv_it(priv_nh)
-		, sync(SyncPol(5))  // queue_size = 5
-		, tf_broadcaster()
+		: sync(SyncPol(5))  // queue_size = 5
 		, transform(tf::Quaternion::getIdentity())
 		, dist_msg()
 		{}
-
-	void setup();
 
 	// see http://wiki.ros.org/message_filters/ApproximateTime for details
 	using SyncPol = message_filters::sync_policies::ApproximateTime<vision_msgs::Detection2DArray, sensor_msgs::Image>;
 	using Synchronizer = message_filters::Synchronizer<SyncPol>;
 
 private:
+	void onInit() override;
+
 	void get_intrinsics(const sensor_msgs::CameraInfo& cam_info);
 
 	double calc_mean_distance(const cv::Mat& depth, const vision_msgs::BoundingBox2D& bbox) const;
@@ -54,10 +53,8 @@ private:
 		const sensor_msgs::ImageConstPtr& depth
 	);
 
-	ros::NodeHandle nh;
-	ros::NodeHandle priv_nh;
-	image_transport::ImageTransport it;
-	image_transport::ImageTransport priv_it;
+	std::unique_ptr<image_transport::ImageTransport> it;
+	std::unique_ptr<image_transport::ImageTransport> priv_it;
 
 	tf::TransformBroadcaster tf_broadcaster;
 	tf::Transform transform;
@@ -80,17 +77,24 @@ private:
 };
 
 
-void TargetLocator::setup() {
+void TargetLocator::onInit() {
+	ros::NodeHandle& nh = getNodeHandle();
+	ros::NodeHandle& priv_nh = getPrivateNodeHandle();
+
+	this->it.reset(new image_transport::ImageTransport(nh));
+	this->priv_it.reset(new image_transport::ImageTransport(priv_nh));
+
+	this->tf_broadcaster = tf::TransformBroadcaster();
 
 	// parameters used to help messages matching faster
 	// see http://wiki.ros.org/message_filters/ApproximateTime for details
 	int lower_bound_ms;
 	double age_penalty;
-	if (!priv_nh.getParam("lower_bound_ms", lower_bound_ms)) {
-		throw ros::InvalidParameterException("parameter `lower_bound_ms' not set!");
-	}
-	if (!priv_nh.getParam("age_penalty", age_penalty)) {
-		throw ros::InvalidParameterException("parameter `age_penalty' not set!");
+	if (!priv_nh.getParam("lower_bound_ms", lower_bound_ms) ||
+		!priv_nh.getParam("age_penalty", age_penalty)) {
+		// exception message won't show in nodelets manager, so manually printing is needed
+		NODELET_ERROR("parameter `lower_bound_ms' & `age_penalty' not set!");
+		throw ros::InvalidParameterException("parameter `lower_bound_ms' & `age_penalty' not set!");
 	}
 
 	// parameters used in extraction of target distance
@@ -107,6 +111,8 @@ void TargetLocator::setup() {
 	priv_nh.param("camera_info_timeout", timeout_sec, timeout_sec);
 	const auto cam_info = ros::topic::waitForMessage<sensor_msgs::CameraInfo>("depth_camera_info", priv_nh, ros::Duration(timeout_sec));
 	if (cam_info == nullptr) {
+		// exception message won't show in nodelets manager, so manually printing is needed
+		NODELET_ERROR("cannot receive CameraInfo message!");
 		throw ros::Exception("cannot receive CameraInfo message!");
 	}
 	this->get_intrinsics(*cam_info);
@@ -119,9 +125,9 @@ void TargetLocator::setup() {
 	// subscribers for camera captures & detections output from jetson nano
 	// use message_filters to match messages from different topics by timestamps,
 	// note that image_transport::SubscriberFilter() is used for sensor_msgs/Image type
-	// TODO: what does last argument (queue_size) in these 3 lines do?
+	// also, I believe queue_size passed to them do not matter, instead queue_size passed to SyncPol matters
 	this->detect_sub.subscribe(priv_nh, "detections", 1);
-	this->depth_sub.subscribe(priv_it, "depth_image_raw", 1);
+	this->depth_sub.subscribe(*priv_it, "depth_image_raw", 1);
 
 	this->sync.connectInput(detect_sub, depth_sub);
 	// 1s == 1000ms
@@ -200,7 +206,7 @@ void TargetLocator::detections_and_depth_callback(
 		const vision_msgs::Detection2DArrayConstPtr& detections,
 		const sensor_msgs::ImageConstPtr& depth) {
 
-	ROS_INFO_THROTTLE(5.0,
+	NODELET_INFO(
 		"detections delay: %fs; depth delay: %fs",
 		(ros::Time::now() - detections->header.stamp).toSec(),
 		(ros::Time::now() - depth->header.stamp).toSec());
@@ -212,7 +218,7 @@ void TargetLocator::detections_and_depth_callback(
 	const vision_msgs::BoundingBox2D& bbox = this->guess_target_bbox(*detections, *depth);
 	// if we've chosen a single bbox out of several, display them
 	if (detections->detections.size() > 1) {
-		ROS_DEBUG_STREAM("choose\n" << bbox << "out of\n" << *detections);
+		NODELET_DEBUG_STREAM("choose\n" << bbox << "out of\n" << *detections);
 	}
 
 	// initialize cv_bridge pointer
@@ -221,7 +227,7 @@ void TargetLocator::detections_and_depth_callback(
 		cv_ptr = cv_bridge::toCvShare(depth, depth->encoding);
 		//cv_ptr = cv_bridge::toCvCopy(*depth, depth->encoding);
 	} catch (cv_bridge::Exception& e) {
-		ROS_ERROR("cv_bridge exception: %s", e.what());
+		NODELET_ERROR("cv_bridge exception: %s", e.what());
 	}
 
 	// calculate mean distance and publish
@@ -240,15 +246,7 @@ void TargetLocator::detections_and_depth_callback(
 		tf::StampedTransform(transform, detections->header.stamp, this->src_frame, this->dst_frame));
 }
 
+}  // namespace xiaoche
 
 
-int main(int argc, char** argv) {
-	ros::init(argc, argv, "test_depth");
-
-	TargetLocator locator;
-	locator.setup();
-
-	ros::spin();
-
-	return 0;
-}
+PLUGINLIB_EXPORT_CLASS(xiaoche::TargetLocator, nodelet::Nodelet);

@@ -49,10 +49,13 @@
   <!-- Use doc_depend for packages you need only for building documentation: -->
   <!--   <doc_depend>doxygen</doc_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
+  <!-- I believe names appear in <depend/> or <build_depend/> should also be in find_package() of CMakeList -->
   <depend>cv_bridge</depend>
   <depend>geometry_msgs</depend>
   <depend>image_transport</depend>
   <depend>message_filters</depend>
+  <depend>nodelet</depend>
+  <depend>pluginlib</depend>
   <depend>roscpp</depend>
   <depend>rospy</depend>
   <depend>std_msgs</depend>
@@ -73,6 +76,6 @@
   <!-- The export tag contains other, unspecified, tags -->
   <export>
     <!-- Other tools can request additional information be placed here -->
-
+    <nodelet plugin="${prefix}/nodelets.xml"/>
   </export>
 </package>

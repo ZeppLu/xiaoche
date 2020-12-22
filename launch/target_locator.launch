@@ -4,8 +4,13 @@
 
     <arg name="detections_topic" default="detectnet_nodelet/detections" />
 
+    <arg name="external_manager" default="false" />
+    <arg name="manager" default="nodelet_manager" />
 
-    <node name="test_target_locator" pkg="xiaoche" type="target_locator_node" required="true" output="screen">
+
+    <node unless="$(arg external_manager)" pkg="nodelet" type="nodelet" name="$(arg manager)" args="manager" required="true" />
+
+    <node name="target_locator_nodelet" pkg="nodelet" type="nodelet" args="load xiaoche/target_locator $(arg manager)" required="true">
 
         <remap from="~detections" to="$(arg detections_topic)" />
         <remap from="~depth_image_raw" to="$(arg camera_depth_ns)/image_raw" />

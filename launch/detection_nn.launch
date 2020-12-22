@@ -9,7 +9,7 @@
 
 	<node unless="$(arg external_manager)" pkg="nodelet" type="nodelet" name="$(arg manager)" args="manager" required="true" />
 
-	<node pkg="nodelet" type="nodelet" name="detectnet_nodelet" args="load ros_deep_learning/detectnet_node $(arg manager)" required="true" output="screen">
+	<node name="detectnet_nodelet" pkg="nodelet" type="nodelet" args="load ros_deep_learning/detectnet_node $(arg manager)" required="true">
 		<param name="model_name" value="$(arg model_name)" />
 		<remap from="~image_in" to="$(arg image_raw)" />
 	</node>

@@ -26,14 +26,17 @@
 		<arg name="model_name" value="$(arg inference_model)" />
 		<arg name="image_raw" value="$(arg camera_rgb_ns)/image_raw" />
 
-        <arg name="external_manager" value="true" />
-        <arg name="manager" value="$(arg nodelets_manager)" />
+		<arg name="external_manager" value="true" />
+		<arg name="manager" value="$(arg nodelets_manager)" />
 	</include>
 
 
 	<include file="$(find xiaoche)/launch/target_locator.launch">
 		<arg name="camera_depth_ns" value="$(arg camera_depth_ns)" />
 		<arg name="detections_topic" value="detectnet_nodelet/detections" />
+
+		<arg name="external_manager" value="true" />
+		<arg name="manager" value="$(arg nodelets_manager)" />
 	</include>
 
 

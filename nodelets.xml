@@ -1,0 +1,9 @@
+<library path="lib/libxiaoche_nodelets">
+  <class name="xiaoche/target_locator"
+         type="xiaoche::TargetLocator"
+         base_class_type="nodelet::Nodelet">
+    <description>
+      Node to calculate and broadcast transform to target
+    </description>
+  </class>
+</library>

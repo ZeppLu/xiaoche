@@ -14,6 +14,8 @@ find_package(catkin REQUIRED COMPONENTS
   image_transport
   message_filters
   message_generation
+  nodelet
+  pluginlib
   roscpp
   rospy
   std_msgs
@@ -131,6 +133,8 @@ include_directories(
 # add_library(${PROJECT_NAME}
 #   src/${PROJECT_NAME}/xiaoche.cpp
 # )
+# nodelets library
+add_library(xiaoche_nodelets src/target_locator_nodelet.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -143,7 +147,6 @@ include_directories(
 # add_executable(${PROJECT_NAME}_node src/xiaoche_node.cpp)
 add_executable(bbox_filter_node src/bbox_filter_node.cpp)
 add_executable(controller_node src/controller_node.cpp)
-add_executable(target_locator_node src/target_locator_node.cpp)
 add_executable(target_tracker_node src/target_tracker_node.cpp)
 
 ## Rename C++ executable without prefix
@@ -166,8 +169,8 @@ add_dependencies(controller_node ${PROJECT_NAME}_generate_messages_cpp)
 # )
 target_link_libraries(bbox_filter_node ${catkin_LIBRARIES})
 target_link_libraries(controller_node ${catkin_LIBRARIES})
-target_link_libraries(target_locator_node ${catkin_LIBRARIES})
 target_link_libraries(target_tracker_node ${catkin_LIBRARIES})
+target_link_libraries(xiaoche_nodelets ${catkin_LIBRARIES})
 
 #############
 ## Install ##
