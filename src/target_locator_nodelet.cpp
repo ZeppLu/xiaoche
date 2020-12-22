@@ -16,9 +16,11 @@
 
 #include <tf/transform_broadcaster.h>
 
+// nodelet relative
 #include <nodelet/nodelet.h>
 #include <pluginlib/class_list_macros.h>
 
+// all static functions, no need to link against
 #include <librealsense2/rsutil.h>
 
 
