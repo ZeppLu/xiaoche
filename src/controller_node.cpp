@@ -81,6 +81,8 @@ private:
 
     // data that are assigned only once and never change
     std::string base_link_frame, camera_frame, target_frame;
+    // TODO: make it configurable; make it ros::Duration
+    double transform_valid_time = 1.0;
     double angular_vel, linear_vel;
     double follow_dist, follow_dist_tol, follow_angle_tol;
     xiaoche::SteeringAngle angle_max, angle_min;
@@ -231,7 +233,9 @@ bool Controller::lookup_transforms() {
     try {
         this->listener->lookupTransform(base_link_frame, target_frame, ros::Time(0), this->base_to_target);
         this->listener->lookupTransform(camera_frame, target_frame, ros::Time(0), this->camera_to_target);
-        return true;
+        ros::Duration base_diff = ros::Time::now() - this->base_to_target.stamp_;
+        ros::Duration camera_diff = ros::Time::now() - this->camera_to_target.stamp_;
+        return base_diff.toSec() < this->transform_valid_time && camera_diff.toSec() < this->transform_valid_time;
     } catch (tf::TransformException e) {
         ROS_ERROR("failed to lookup transform (%s)", e.what());
         return false;
