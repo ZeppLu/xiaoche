@@ -81,8 +81,7 @@ private:
 
     // data that are assigned only once and never change
     std::string base_link_frame, camera_frame, target_frame;
-    // TODO: make it configurable; make it ros::Duration
-    double transform_valid_time = 1.0;
+    ros::Duration transform_valid_period;
     double angular_vel, linear_vel;
     double follow_dist, follow_dist_tol, follow_angle_tol;
     xiaoche::SteeringAngle angle_max, angle_min;
@@ -99,6 +98,14 @@ bool Controller::setup(ros::NodeHandle& nh, ros::NodeHandle& priv_nh) {
     priv_nh.param<std::string>("base_link_frame", this->base_link_frame, "base_link");
     priv_nh.param<std::string>("camera_frame", this->camera_frame, "camera_color_frame");
     priv_nh.param<std::string>("target_frame", this->target_frame, "target");
+
+    double transform_valid_period_sec;
+    if (!priv_nh.getParam("transform_valid_period_sec", transform_valid_period_sec)) {
+        ROS_ERROR("transform valid period not set!");
+        return false;
+    }
+    assert(transform_valid_period_sec > 0);
+    this->transform_valid_period = ros::Duration(transform_valid_period_sec);
 
     if (!priv_nh.getParam("angular_velocity", this->angular_vel) ||
         !priv_nh.getParam("linear_velocity", this->linear_vel)) {
@@ -235,7 +242,8 @@ bool Controller::lookup_transforms() {
         this->listener->lookupTransform(camera_frame, target_frame, ros::Time(0), this->camera_to_target);
         ros::Duration base_diff = ros::Time::now() - this->base_to_target.stamp_;
         ros::Duration camera_diff = ros::Time::now() - this->camera_to_target.stamp_;
-        return base_diff.toSec() < this->transform_valid_time && camera_diff.toSec() < this->transform_valid_time;
+        ROS_INFO("transforms delay: %lf, %lf", base_diff.toSec(), camera_diff.toSec());
+        return base_diff < this->transform_valid_period && camera_diff < this->transform_valid_period;
     } catch (tf::TransformException e) {
         ROS_ERROR("failed to lookup transform (%s)", e.what());
         return false;
