@@ -9,8 +9,8 @@
         <param name="target_frame" value="target" />
         <!-- Following behaviour -->
         <param name="transform_valid_period_sec" value="0.8" />
-        <param name="angular_velocity" value="1" />
-        <param name="linear_velocity" value="0.5" />
+        <param name="angular_velocity" value="0.3" />
+        <param name="linear_velocity" value="0.25" />
         <param name="follow_distance" value="2" />
         <param name="follow_distance_tolerance" value="0.3" />
         <param name="follow_angle_tolerance" value="0.2" />
