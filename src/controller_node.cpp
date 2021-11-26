@@ -242,7 +242,7 @@ bool Controller::lookup_transforms() {
         this->listener->lookupTransform(camera_frame, target_frame, ros::Time(0), this->camera_to_target);
         ros::Duration base_diff = ros::Time::now() - this->base_to_target.stamp_;
         ros::Duration camera_diff = ros::Time::now() - this->camera_to_target.stamp_;
-        ROS_INFO("transforms delay: %lf, %lf", base_diff.toSec(), camera_diff.toSec());
+        ROS_INFO("transforms lookup delay: %lf, %lf relative to publish time", base_diff.toSec(), camera_diff.toSec());
         return base_diff < this->transform_valid_period && camera_diff < this->transform_valid_period;
     } catch (tf::TransformException e) {
         ROS_ERROR("failed to lookup transform (%s)", e.what());

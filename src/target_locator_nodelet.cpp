@@ -241,11 +241,14 @@ void TargetLocator::detections_and_depth_callback(
 	float point[3] = { 0, 0, 0};
 	rs2_deproject_pixel_to_point(point, &intrin, pixel, this->dist_msg.data);
 
+	ROS_INFO("target locator delay (%lf to detections, %lf to depth image)",
+		(ros::Time::now() - detections->header.stamp).toSec(),
+		(ros::Time::now() - depth->header.stamp).toSec());
+
 	// send transform
 	this->transform.setOrigin(tf::Vector3(point[0], point[1], point[2]));
-	// XXX: send which timestamp?
 	tf_broadcaster.sendTransform(
-		tf::StampedTransform(transform, detections->header.stamp, this->src_frame, this->dst_frame));
+		tf::StampedTransform(transform, ros::Time::now(), this->src_frame, this->dst_frame));
 }
 
 }  // namespace xiaoche
